@@ -19,4 +19,7 @@ class DataSplitter:
         return {
             "X_train": X_train, "X_val": X_val, "X_test": X_test,
             "y_train": y_train, "y_val": y_val, "y_test": y_test,
+            "train_idx": X_train.index,
+            "val_idx": X_val.index,
+            "test_idx": X_test.index,
         }

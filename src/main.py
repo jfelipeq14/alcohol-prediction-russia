@@ -6,6 +6,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import warnings
 warnings.filterwarnings("ignore")
 
+import matplotlib
+matplotlib.use("Agg")
+
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 

@@ -17,5 +17,8 @@ venv/
 .vscode/
 .idea/
 
+# Jupyter
+.ipynb_checkpoints/
+
 # Runtime output
 output/

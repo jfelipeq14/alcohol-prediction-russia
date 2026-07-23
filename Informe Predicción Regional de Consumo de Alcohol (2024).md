@@ -31,7 +31,7 @@ Variable Objetivo (Target): Volumen de consumo (valor numérico continuo)
 
 Paradigma: Aprendizaje supervisado, donde el modelo aprende de pares de entrada y salida correctos (datos históricos etiquetados)
 
-- 5. Propuesta de Solución: Red Neuronal Profunda (Feedforward)
+## 5. Propuesta de Solución: Red Neuronal Profunda (Feedforward)
 
 Se propone una arquitectura de red neuronal de alimentación hacia adelante con las siguientes características:
 
@@ -41,13 +41,13 @@ Capas Ocultas: Múltiples capas interconectadas para procesar la información de
 
 Capa de Salida: Utilizará una función de activación lineal, necesaria para estimar valores numéricos en problemas de regresión
 
-- 6. Preprocesamiento de Datos
+## 6. Preprocesamiento de Datos
 
 Codificación: Las etiquetas de las regiones y tipos de bebida deben convertirse en formatos procesables, como vectores numéricos (one-hot encoding)
 
 Normalización: Las cifras de consumo deben normalizarse o estandarizarse para facilitar el entrenamiento, especialmente si tienen rangos muy amplios entre diferentes bebidas
 
-- 7. Entrenamiento y Regularización
+## 7. Entrenamiento y Regularización
 
 Algoritmo: Se empleará backpropagation (propagación hacia atrás) y gradiente descendente para ajustar los pesos y minimizar el error
 
@@ -67,7 +67,6 @@ Esta sección detalla cómo se implementó cada componente del pipeline, desde l
 | Preprocesamiento y métricas | scikit-learn |
 | Visualización | matplotlib, seaborn |
 | Entorno de ejecución | Docker con volumen montado (hot-reload) |
-| Notebook interactivo | Jupyter (servicio separado, puerto 8888) |
 | Entorno en la nube | Google Colab (notebook autónomo) |
 
 ### 8.2 Arquitectura del Modelo
@@ -169,16 +168,16 @@ Tres métricas estándar para regresión:
 ### 9.2 Resultados sobre el Conjunto de Test
 
 | Métrica | Neural Network | Linear Regression |
-|---|---|---|
-| MSE | 0.0108 | 0.0132 |
-| MAE | 0.0613 | 0.0599 |
-| R² | 0.9915 | 0.9897 |
+|---|---|---|---|
+| MSE | 0.0095 | 0.0132 |
+| MAE | 0.0595 | 0.0599 |
+| R² | 0.9926 | 0.9897 |
 
 **Interpretación:**
-- La red neuronal obtiene un **R² de 0.9915**, lo que significa que explica el 99.15% de la varianza del consumo de alcohol. Es un resultado excelente.
-- El MAE de 0.0613 litros indica que, en promedio, la predicción se desvía 0.06 litros de alcohol puro per cápita del valor real. Considerando que la media del target es ~0.7 litros, esto representa un error relativo promedio de ~9%.
+- La red neuronal obtiene un **R² de 0.9926**, lo que significa que explica el 99.26% de la varianza del consumo de alcohol. Es un resultado excelente.
+- El MAE de 0.0595 litros indica que, en promedio, la predicción se desvía ~0.06 litros de alcohol puro per cápita del valor real. Considerando que la media del target es ~0.7 litros, esto representa un error relativo promedio de ~8.5%.
 - La regresión lineal obtiene R² = 0.9897, muy cercano a la red neuronal. Esto sugiere que el problema tiene un fuerte componente lineal.
-- La red neuronal supera ligeramente a la línea de base en MSE y R², pero la regresión lineal obtiene mejor MAE. Esto indica que la NN comete errores más pequeños en promedio cuadrático, aunque con algunos errores puntuales más grandes.
+- La red neuronal supera a la línea de base en las tres métricas (MSE, MAE y R²), aunque la diferencia es pequeña. El error cuadrático es notablemente menor (0.0095 vs 0.0132), lo que indica que la NN evita mejor los errores grandes.
 
 ### 9.3 Gráfica de Historial de Entrenamiento
 
@@ -196,7 +195,7 @@ Para diagnosticar el entrenamiento del modelo:
 
 **¿Qué se observa?**
 - El validation loss disminuye rápidamente en las primeras épocas y se estabiliza alrededor de la época 20.
-- El early stopping detuvo el entrenamiento en la época 36 porque el validation loss no mejoró durante 15 épocas consecutivas.
+- El early stopping detuvo el entrenamiento en la época 59 porque el validation loss no mejoró durante 15 épocas consecutivas.
 - No hay evidencia de overfitting significativo: ambas curvas se mantienen cercanas y estables.
 
 ### 9.4 Gráfica de Predicciones vs Valores Reales
@@ -230,10 +229,51 @@ Un gráfico de barras que compara las tres métricas (MSE, MAE, R²) entre la re
 Para comparar de forma directa y visual el desempeño de ambos modelos. Los valores numéricos se muestran sobre cada barra para facilitar la lectura.
 
 **¿Qué se observa?**
-- La Neural Network tiene MSE más bajo (0.0108 vs 0.0132), indicando que sus errores grandes son menores.
-- La Linear Regression tiene MAE más bajo (0.0599 vs 0.0613), indicando que su error promedio absoluto es ligeramente mejor.
-- La NN tiene R² más alto (0.9915 vs 0.9897).
+- La Neural Network tiene MSE más bajo (0.0095 vs 0.0132), indicando que sus errores grandes son menores.
+- La NN también tiene MAE más bajo (0.0595 vs 0.0599), aunque la diferencia es mínima.
+- La NN tiene R² más alto (0.9926 vs 0.9897).
 - En términos prácticos, ambos modelos son muy competitivos. La red neuronal ofrece una mejora marginal sobre la línea de base lineal, lo cual es esperable dado que el patrón temporal del consumo de alcohol tiene un fuerte componente lineal.
+
+### 9.6 Gráfica de Residuales
+
+![residuals](assets/residuals.png)
+
+**¿Qué muestra esta gráfica?**
+Un panel de 1×3 con tres visualizaciones de los residuales (errores de predicción = valor real - valor predicho) sobre el conjunto de test:
+- **Panel izquierdo (Distribución)**: Histograma + KDE de los residuales. La curva normal (línea punteada roja) sirve como referencia.
+- **Panel central (Residuales vs Predichos)**: Scatter plot donde cada punto es una muestra de test. El eje X es el valor predicho, el eje Y es el residual. La línea horizontal en y=0 marca el error cero.
+- **Panel derecho (Residuales por Tipo de Bebida)**: Boxplot que muestra la distribución de residuales agrupada por cada una de las 7 bebidas.
+
+**¿Por qué se usa?**
+El análisis de residuales es fundamental para validar los supuestos del modelo de regresión:
+- **Distribución centrada en 0** → el modelo no tiene sesgo sistemático (no sobreestima ni subestima consistentemente).
+- **Distribución aproximadamente normal** → los errores son aleatorios y no hay patrones no capturados.
+- **Varianza constante (homocedasticidad)** → el modelo funciona igual de bien en todo el rango de valores.
+- **Sin patrones en el scatter** → si los residuales muestran forma de embudo o curva, el modelo no captura alguna relación.
+
+**¿Qué se observa?**
+- La distribución de residuales es aproximadamente normal y está centrada en 0, lo que indica que el modelo no tiene sesgo significativo.
+- El scatter plot no muestra patrones evidentes (embudo, curvatura), lo que sugiere que el modelo captura adecuadamente las relaciones en los datos.
+- Los boxplots por bebida muestran que el error es consistente entre tipos de bebida, aunque algunas categorías con pocas muestras (como Cider) presentan mayor dispersión.
+
+### 9.7 Mapa de Correlación entre Años
+
+![correlation_heatmap](assets/correlation_heatmap.png)
+
+**¿Qué muestra esta gráfica?**
+Un heatmap de la matriz de correlación de Pearson entre los valores de consumo de alcohol puro per cápita de todos los años disponibles (2017–2023). Cada celda muestra el coeficiente de correlación (r) entre un par de años, con color que va de rojo oscuro (correlación positiva fuerte) a azul (correlación débil o negativa).
+
+**¿Por qué se usa?**
+Para entender la estructura temporal de los datos:
+- Correlaciones altas entre años consecutivos → el consumo es estable y predecible.
+- Correlaciones bajas entre años lejanos → el comportamiento de consumo cambia con el tiempo.
+- Si algún año tiene correlación baja con todos los demás → podría ser un año atípico (ej. cambios en políticas de alcohol, pandemia).
+
+**¿Qué se observa?**
+- Todos los años tienen correlaciones positivas fuertes (r > 0.85), lo que indica que el consumo regional es muy estable año tras año.
+- Las correlaciones más altas se dan entre años consecutivos (r > 0.95), confirmando que el mejor predictor del consumo de un año es el consumo del año anterior.
+- No se observa un año atípico: la estructura de correlación es uniforme, lo que sugiere que no hubo cambios drásticos en los patrones de consumo entre 2017 y 2023.
+- La alta correlación entre todos los años explica por qué la regresión lineal obtiene resultados casi tan buenos como la red neuronal.
 
 ## 10. Predicciones 2024
 
@@ -255,8 +295,19 @@ El modelo aprendió a mapear 6 años consecutivos de consumo (con sus 3 métrica
 | Sparkling wine | 0.144 |
 | Cider | 0.032 |
 
+![beverage_ranking](assets/beverage_ranking.png)
+
 **Interpretación:**
 La cerveza y el vodka dominan el consumo estimado para 2024, representando juntos aproximadamente el 80% del consumo total de alcohol puro per cápita. El cider tiene el consumo más bajo, con apenas 0.03 litros, consistente con su baja popularidad en Rusia.
+
+**¿Qué muestra esta gráfica?**
+Un gráfico de barras horizontales ordenado de mayor a menor consumo estimado de alcohol puro per cápita para 2024, desglosado por cada uno de los 7 tipos de bebida.
+
+**¿Qué se observa?**
+- La cerveza lidera con 2.48 litros, seguida muy de cerca por el vodka con 2.32 litros. Juntos representan más del 75% del consumo total estimado.
+- Los licores (Liqueurs) y el vino ocupan un escalón intermedio (~0.44 litros cada uno), muy por detrás de las dos bebidas principales.
+- El cider tiene un consumo marginal (0.032 litros), reflejando su baja presencia en el mercado ruso.
+- La diferencia entre la bebida más consumida (cerveza) y la menos consumida (cider) es de dos órdenes de magnitud (~77×).
 
 ### 10.3 Ranking Completo de Regiones
 
@@ -321,6 +372,25 @@ Para visualizar la distribución geográfica del consumo estimado. La gráfica r
 - **Regiones del Cáucaso Norte ocupan el bottom**: Chechnya (0.058), Ingushetia (0.064) y Dagestan (0.148) tienen los consumos más bajos. Estas regiones tienen poblaciones predominantemente musulmanas, donde el consumo de alcohol es culturalmente bajo.
 - **La diferencia es enorme**: Nenets consume ~28 veces más que Chechnya en términos de alcohol puro per cápita.
 
+### 10.5 Comparación 2023 vs 2024
+
+![comparison_2023_2024](assets/comparison_2023_2024.png)
+
+**¿Qué muestra esta gráfica?**
+Un scatter plot que compara el consumo real de 2023 (eje X) con el consumo estimado para 2024 (eje Y) para cada combinación de región y tipo de bebida. Cada punto representa una muestra. La línea diagonal y = x indica donde los valores serían idénticos. Los puntos sobre la diagonal representan aumentos estimados; los puntos debajo, disminuciones.
+
+**¿Por qué se usa?**
+Para visualizar el cambio estimado entre el último año real (2023) y el año predicho (2024). Permite identificar:
+- Si el modelo predice un aumento o disminución general del consumo.
+- Qué regiones o bebidas tienen los cambios más extremos.
+- Si hay algún patrón sistemático (ej. valores altos tienden a subir o bajar).
+
+**¿Qué se observa?**
+- La mayoría de los puntos están cerca de la diagonal, lo que indica que las predicciones son coherentes con los valores reales de 2023.
+- Hay una ligera tendencia al alza: más puntos por encima de la diagonal que por debajo (73 regiones con aumento estimado vs 12 con disminución).
+- Los aumentos más notables se dan en regiones con consumo medio-alto, como Nenets Autonomous Okrug (+0.183) y Arkhangelsk Oblast (+0.117).
+- Las disminuciones más pronunciadas se concentran en regiones como Magadan Oblast (-0.042) y Vologda Oblast (-0.022), aunque son cambios muy pequeños en términos absolutos.
+
 ## 11. Estructura del Proyecto
 
 El código fuente completo está disponible en GitHub y sigue la siguiente organización:
@@ -332,16 +402,14 @@ El código fuente completo está disponible en GitHub y sigue la siguiente organ
 ├── Dockerfile             → Imagen Docker (Python 3.10 slim)
 ├── LICENSE
 ├── README.md
-├── docker-compose.yml     → Servicios: app (pipeline) + jupyter (notebook)
+├── docker-compose.yml     → Servicio app (pipeline completo)
 ├── requirements.txt       → Dependencias Python
 ├── colab.ipynb            → Notebook autónomo para Google Colab
 ├── assets/                → Gráficos generados (PNGs)
-├── notebooks/
-│   └── exploracion.ipynb  → Pipeline interactivo local
 ├── src/
 │   ├── config.py          → Config dataclass (hiperparámetros, rutas)
 │   ├── main.py            → Orquestación end-to-end
-│   ├── visualize.py       → 5 funciones de gráficas
+│   ├── visualize.py       → 8 funciones de gráficas
 │   ├── data/
 │   │   ├── loader.py      → CSVLoader con detección de encoding
 │   │   ├── dataset.py     → AlcoholDataset (PyTorch Dataset)
@@ -372,10 +440,6 @@ cd alcohol-prediction-russia
 # Construir imagen y ejecutar pipeline completo
 docker compose build
 docker compose run --remove-orphans app
-
-# Opcional: Jupyter Notebook interactivo
-docker compose up jupyter
-# Abrir http://localhost:8888?token=<token_en_logs>
 ```
 
 ### 12.2 Con Google Colab (sin instalación local)

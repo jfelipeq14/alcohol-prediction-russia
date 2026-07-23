@@ -9,6 +9,8 @@ warnings.filterwarnings("ignore")
 import matplotlib
 matplotlib.use("Agg")
 
+import torch
+
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 
@@ -150,5 +152,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import torch
     main()

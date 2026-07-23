@@ -35,7 +35,6 @@ Red neuronal profunda para predecir el consumo de alcohol puro per cápita en re
 - **Manejo de datos**: pandas, numpy, scikit-learn
 - **Visualización**: matplotlib, seaborn
 - **Entorno**: Docker con hot-reload (volumen montado)
-- **Jupyter**: Servicio separado en docker-compose, puerto 8888, token automático
 
 ## 6. Arquitectura del Modelo
 - **Input**: ~110 features (depende de regiones en train)
@@ -62,11 +61,13 @@ Red neuronal profunda para predecir el consumo de alcohol puro per cápita en re
 
 ## 9. Cómo ejecutar
 ```bash
-# Pipeline completo
+# Pipeline completo (genera 8 PNGs + 3 CSVs en output/)
 docker compose run --remove-orphans app
 
-# Jupyter Notebook (http://localhost:8888, token en logs)
-docker compose up jupyter
+# Google Colab (sin instalación local)
+# 1. Ir a https://colab.research.google.com
+# 2. Archivo → Subir notebook → seleccionar colab.ipynb
+# 3. Entorno → Tiempo de ejecución → Ejecutar todo
 ```
 
 ## 10. Estructura del Proyecto
@@ -79,13 +80,12 @@ docker compose up jupyter
 ├── README.md
 ├── docker-compose.yml
 ├── requirements.txt
-├── notebooks/
-│   └── exploracion.ipynb     → pipeline interactivo + análisis libre
+├── colab.ipynb               → notebook autónomo para Google Colab
 ├── src/
 │   ├── __init__.py
 │   ├── config.py              → Config dataclass
 │   ├── main.py                → orquestación end-to-end
-│   ├── visualize.py           → 5 tipos de gráficas
+│   ├── visualize.py           → 8 tipos de gráficas
 │   ├── data/
 │   │   ├── dataset.py         → AlcoholDataset (PyTorch)
 │   │   ├── loader.py          → CSVLoader con detección de encoding

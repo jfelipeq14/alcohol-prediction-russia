@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import torch
+import numpy as np
 
 from sklearn.linear_model import LinearRegression
 import pandas as pd
@@ -28,6 +29,10 @@ from src.visualize import (
     plot_actual_vs_predicted,
     plot_ranking,
     plot_metrics_comparison,
+    plot_beverage_ranking,
+    plot_comparison_2023_2024,
+    plot_residuals,
+    plot_correlation_heatmap,
 )
 
 
@@ -80,7 +85,7 @@ def main():
     test_dataset = AlcoholDataset(X_test, y_test)
 
     input_dim = X_train.shape[1]
-    print(f"       Input dimension: {input_dim} ({input_dim - 2 - 18} regions OH + 6 beverages OH + 18 numerical)")
+    print(f"       Input dimension: {input_dim}")
 
     # ── 6. Build Model ─────────────────────────────────────────
     print("[6/9] Building neural network...")
@@ -132,18 +137,57 @@ def main():
     print(f"       Region ranking:    ranking_regiones.csv")
     print(f"       Beverage ranking:  ranking_bebidas.csv")
 
-    # ── 10. Generate plots ─────────────────────────────────────
-    print("\nGenerating plots...")
-    plot_training_history(history, config.output_dir)
+    # ── 10. Comparison 2023 vs 2024 ────────────────────────────
+    print("\n── 2023 vs 2024 Comparison ──")
+    comp = pivoted[["Region", "Type of alcoholic beverages", "alc_2023"]].copy()
+    comp = comp.merge(predictions, on=["Region", "Type of alcoholic beverages"])
+    comp["Diferencia"] = comp["Predicted_2024"] - comp["alc_2023"]
+    comp["Dif_%"] = (comp["Diferencia"] / comp["alc_2023"].replace(0, np.nan)) * 100
+
+    region_change = comp.groupby("Region").agg(
+        Real_2023=("alc_2023", "mean"),
+        Pred_2024=("Predicted_2024", "mean"),
+        Diferencia=("Diferencia", "mean"),
+    ).sort_values("Diferencia", ascending=False)
+
+    up = (region_change["Diferencia"] > 0).sum()
+    down = (region_change["Diferencia"] <= 0).sum()
+    print(f"       Regions with estimated increase: {up}")
+    print(f"       Regions with estimated decrease: {down}")
+    print(f"       Top 5 increase: {', '.join(f'{r} ({v:.3f})' for r, v in region_change.head(5)['Diferencia'].items())}")
+    print(f"       Top 5 decrease: {', '.join(f'{r} ({v:.3f})' for r, v in region_change.tail(5).sort_values('Diferencia').head(5)['Diferencia'].items())}")
+
+    # ── 11. Generate plots ─────────────────────────────────────
+    print("\n── Generating plots ──")
 
     y_test_pred_nn = model(torch.tensor(X_test, dtype=torch.float32)).detach().numpy().flatten()
-    plot_actual_vs_predicted(y_test, y_test_pred_nn, config.output_dir, title="Neural Network")
-
     y_test_pred_base = baseline.predict(X_test)
-    plot_actual_vs_predicted(y_test, y_test_pred_base, config.output_dir, title="Linear Regression (baseline)")
+
+    plot_training_history(history, config.output_dir)
+    print("       training_history.png")
+
+    plot_actual_vs_predicted(y_test, y_test_pred_nn, y_test_pred_base, config.output_dir)
+    print("       actual_vs_predicted.png")
 
     plot_ranking(predictions, config.output_dir)
+    print("       ranking.png")
+
     plot_metrics_comparison(nn_metrics, baseline_metrics, config.output_dir)
+    print("       model_comparison.png")
+
+    plot_beverage_ranking(beverage_ranking, config.output_dir)
+    print("       beverage_ranking.png")
+
+    plot_comparison_2023_2024(comp, config.output_dir)
+    print("       comparison_2023_2024.png")
+
+    residuals = y_test - y_test_pred_nn
+    pivoted_test = pivoted.loc[splits["test_idx"]]
+    plot_residuals(y_test, y_test_pred_nn, residuals, pivoted_test, config.output_dir)
+    print("       residuals.png")
+
+    plot_correlation_heatmap(pivoted, config.output_dir)
+    print("       correlation_heatmap.png")
 
     # ── Done ───────────────────────────────────────────────────
     print("\n" + "=" * 55)
